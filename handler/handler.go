@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,7 +10,7 @@ import (
 )
 
 type FileHandler interface {
-	UploadFile(c *gin.Context)
+	Analyse(c *gin.Context)
 }
 
 type fileHandler struct{}
@@ -18,11 +19,17 @@ func NewFileHandler() FileHandler {
 	return &fileHandler{}
 }
 
-func (h *fileHandler) UploadFile(c *gin.Context) {
+func (h *fileHandler) Analyse(c *gin.Context) {
 	var dto dto.ResumeRequest
 
 	if err := c.ShouldBind(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "failed", "message": "Invalid request body", "result": gin.H{"error": err.Error()}})
+		return
+	}
+
+	if len(dto.JobDescription) < 20 || dto.ResumeFile == nil {
+		fmt.Println("Empty Request")
+		c.JSON(http.StatusBadRequest, gin.H{"status": "failed", "message": "Invalid request body", "result": gin.H{"error": "Empty request"}})
 		return
 	}
 
