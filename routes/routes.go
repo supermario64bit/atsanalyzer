@@ -8,6 +8,6 @@ import (
 func MountHTTPRoutes(r *gin.Engine) {
 
 	fileHanlder := handler.NewFileHandler()
-	r.POST("/file/upload", fileHanlder.UploadFile)
+	r.POST("/analyse", fileHanlder.UploadFile)
 }
 	
