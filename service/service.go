@@ -33,9 +33,13 @@ func AnalyzeResumeWithJD(req *dto.ResumeRequest) (*dto.ResumeAnalysis, error) {
 		{Text: prompt},
 	}
 
+	temp := float32(0.0)
+	topP := float32(0.9)
 	config := &genai.GenerateContentConfig{
 		ResponseMIMEType: "application/json",
 		ResponseSchema:   utils.GenerateAnalysisSchema(),
+		Temperature:      &temp,
+		TopP:             &topP,
 	}
 	resp, err := genAIClient.Models.GenerateContent(context.Background(), "gemini-2.5-flash", []*genai.Content{{Role: "user", Parts: parts}}, config)
 	if err != nil {

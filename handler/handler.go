@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,21 +23,24 @@ func (h *fileHandler) Analyse(c *gin.Context) {
 	var dto dto.ResumeRequest
 
 	if err := c.ShouldBind(&dto); err != nil {
+		log.Println("Unable to bind request body. Error: " + err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"status": "failed", "message": "Invalid request body", "result": gin.H{"error": err.Error()}})
 		return
 	}
 
 	if len(dto.JobDescription) < 20 || dto.ResumeFile == nil {
-		fmt.Println("Empty Request")
+		log.Println("Empty request")
 		c.JSON(http.StatusBadRequest, gin.H{"status": "failed", "message": "Invalid request body", "result": gin.H{"error": "Empty request"}})
 		return
 	}
 
 	rawText, err := service.AnalyzeResumeWithJD(&dto)
 	if err != nil {
+		log.Println("Unable to parse resume. Error: " + err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "failed", "message": "Unable to parse resume", "result": gin.H{"error": err.Error()}})
 		return
 	}
 
-	c.JSON(http.StatusAccepted, gin.H{"status": "success", "message": "File Uploaded!!", "result": gin.H{"pdf_raw": rawText}})
+	log.Println("ATS Score available")
+	c.JSON(http.StatusAccepted, gin.H{"status": "success", "message": "Analysis completed!!", "result": gin.H{"pdf_raw": rawText}})
 }

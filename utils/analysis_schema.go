@@ -46,6 +46,6 @@ func GenerateAnalysisSchema() *genai.Schema {
 				Description: "Job Role given in the job description that the company is hiring. If not available show, 'Unable to extract job role from JD.'",
 			},
 		},
-		Required: []string{"ats_match_score", "matched_skills", "missing_skills", "suggestions_to_improve"},
+		Required: []string{"ats_match_score", "matched_skills", "missing_skills", "suggestions_to_improve", "candidate_name", "candidate_email", "candidate_phone", "company_name", "role"},
 	}
 }
