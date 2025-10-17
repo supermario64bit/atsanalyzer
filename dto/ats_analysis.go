@@ -1,6 +1,8 @@
 package dto
 
 type ResumeAnalysis struct {
+	IsResume             bool     `json:"is_resume"`
+	IsJD                 bool     `json:"is_jd"`
 	AtsScore             int      `json:"ats_match_score"`
 	MatchingSkills       []string `json:"matched_skills"`
 	MissingSkills        []string `json:"missing_skills"`

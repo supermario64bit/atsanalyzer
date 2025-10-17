@@ -6,6 +6,14 @@ func GenerateAnalysisSchema() *genai.Schema {
 	return &genai.Schema{
 		Type: genai.TypeObject,
 		Properties: map[string]*genai.Schema{
+			"is_resume": {
+				Type:        genai.TypeBoolean,
+				Description: "If the uploaded file is a resume, cv make it true, if it is some other document make it false",
+			},
+			"is_jd": {
+				Type:    genai.TypeBoolean,
+				Default: "If the input text is a job post or a job description make it true, if it is not related to a job post or a job description make it false",
+			},
 			"ats_match_score": {
 				Type:        genai.TypeInteger,
 				Description: "ATS match percentage (0-100). Match criteria will be the required skills, experience and background in the job description matches with the candidate resume",
@@ -46,6 +54,6 @@ func GenerateAnalysisSchema() *genai.Schema {
 				Description: "Job Role given in the job description that the company is hiring. If not available show, 'Unable to extract job role from JD.'",
 			},
 		},
-		Required: []string{"ats_match_score", "matched_skills", "missing_skills", "suggestions_to_improve", "candidate_name", "candidate_email", "candidate_phone", "company_name", "role"},
+		Required: []string{"is_resume", "is_jd", "ats_match_score", "matched_skills", "missing_skills", "suggestions_to_improve", "candidate_name", "candidate_email", "candidate_phone", "company_name", "role"},
 	}
 }
