@@ -15,3 +15,7 @@ push_docker:
 	echo "Pushing image $(IMAGE_NAME):$$TAG to Docker Hub..."; \
 	docker push $(IMAGE_NAME):$$TAG; \
 	echo "Push complete!"
+
+run_worker:
+	@echo "⚙️ Running the Asynq worker in dev mode..."
+	go run cmd/jobs/main.go
