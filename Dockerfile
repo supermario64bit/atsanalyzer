@@ -31,7 +31,6 @@ WORKDIR /app
 COPY --from=builder /app/app .
 
 COPY .env .
-COPY --from=builder /app/assets/secrets ./assets/secrets
 
 
 # Expose port (change to your app’s port)
