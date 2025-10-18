@@ -7,7 +7,6 @@ import (
 
 	"github.com/supermario64bit/atsanalyzer/dto"
 	"github.com/supermario64bit/atsanalyzer/types"
-	"github.com/supermario64bit/atsanalyzer/utils"
 )
 
 type resumeAnalysisService struct {
@@ -15,7 +14,7 @@ type resumeAnalysisService struct {
 }
 
 type ResumeAnalysis interface {
-	Analyse(req *dto.ResumeRequest) (*dto.ResumeAnalysis, *types.ApplicationError)
+	Analyse(req *dto.ResumeAnalysisJob) (*dto.ResumeAnalysis, *types.ApplicationError)
 }
 
 func NewResumeAnalysisService() ResumeAnalysis {
@@ -24,16 +23,7 @@ func NewResumeAnalysisService() ResumeAnalysis {
 	}
 }
 
-func (svc *resumeAnalysisService) Analyse(req *dto.ResumeRequest) (*dto.ResumeAnalysis, *types.ApplicationError) {
-	resumeText, err := utils.ExtractTextFromPDF(req.ResumeFile)
-	if err != nil {
-		return nil, &types.ApplicationError{
-			HttpStatusCode: http.StatusInternalServerError,
-			Message:        "Unable to analyse resume",
-			Error:          err,
-		}
-	}
-
+func (svc *resumeAnalysisService) Analyse(req *dto.ResumeAnalysisJob) (*dto.ResumeAnalysis, *types.ApplicationError) {
 	prompt := fmt.Sprintf(`
 		You are an ATS evaluation assistant.
 
@@ -75,7 +65,7 @@ func (svc *resumeAnalysisService) Analyse(req *dto.ResumeRequest) (*dto.ResumeAn
 		"company_name": string,
 		"role": string
 		}
-		`, req.JobDescription, resumeText)
+		`, req.JobDescription, req.ResumeTest)
 
 	result, appErr := svc.genAiSvc.GetPromptResponse(prompt)
 	if appErr != nil {
@@ -94,7 +84,7 @@ func (svc *resumeAnalysisService) Analyse(req *dto.ResumeRequest) (*dto.ResumeAn
 	jsonString := result.Candidates[0].Content.Parts[0].Text
 
 	var analysis dto.ResumeAnalysis
-	err = json.Unmarshal([]byte(jsonString), &analysis)
+	err := json.Unmarshal([]byte(jsonString), &analysis)
 	if err != nil {
 		return nil, &types.ApplicationError{
 			HttpStatusCode: http.StatusInternalServerError,

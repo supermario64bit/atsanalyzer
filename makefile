@@ -27,7 +27,7 @@ run_asynqmon_docker:
 		-p 8081:8080 \
 		--rm \
 		hibiken/asynqmon \
-		--redis-addr=localhost:6379
+		--redis-addr=redis:6379
 	@echo "✅ AsynqMon started at http://localhost:8081"
 stop_asynqmon_docker:
 	@echo "🛑 Stopping AsynqMon..."

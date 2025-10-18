@@ -11,7 +11,7 @@ import (
 )
 
 func HandleResumeAnalysisTask(ctx context.Context, t *asynq.Task) error {
-	var p dto.ResumeRequest
+	var p dto.ResumeAnalysisJob
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
@@ -19,5 +19,8 @@ func HandleResumeAnalysisTask(ctx context.Context, t *asynq.Task) error {
 	svc := service.NewResumeAnalysisService()
 	_, appErr := svc.Analyse(&p)
 
-	return appErr.Error
+	if appErr != nil {
+		return appErr.Error
+	}
+	return nil
 }
