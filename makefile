@@ -18,4 +18,4 @@ push_docker:
 
 run_worker:
 	@echo "⚙️ Running the Asynq worker in dev mode..."
-	go run cmd/jobs/main.go
+	go run cmd/worker/main.go
