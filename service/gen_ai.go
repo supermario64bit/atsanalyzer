@@ -11,14 +11,11 @@ import (
 	"google.golang.org/genai"
 )
 
-func NewGenAIClient() (*genai.Client, error) {
-	return genai.NewClient(context.Background(), &genai.ClientConfig{})
-}
-
-func GetPromptResponseThroughVertexAPI(prompt string) (*dto.ResumeAnalysis, error) {
-	genAIClient, err := NewGenAIClient()
+func GetPromptResponseThroughGoogleAiStudioAPI(prompt string) (*dto.ResumeAnalysis, error) {
+	ctx := context.Background()
+	client, err := genai.NewClient(ctx, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Unable initialize ai client. Error: " + err.Error())
+		log.Fatal(err)
 	}
 
 	parts := []*genai.Part{
@@ -33,16 +30,19 @@ func GetPromptResponseThroughVertexAPI(prompt string) (*dto.ResumeAnalysis, erro
 		Temperature:      &temp,
 		TopP:             &topP,
 	}
-	resp, err := genAIClient.Models.GenerateContent(context.Background(), "gemini-2.5-flash", []*genai.Content{{Role: "user", Parts: parts}}, config)
-	if err != nil {
-		log.Fatalf("Failed to generate content: %v", err)
-	}
 
-	if len(resp.Candidates) == 0 || resp.Candidates[0].Content == nil || len(resp.Candidates[0].Content.Parts) == 0 {
+	result, err := client.Models.GenerateContent(
+		ctx,
+		"gemini-2.5-flash",
+		[]*genai.Content{{Role: "user", Parts: parts}},
+		config,
+	)
+
+	if len(result.Candidates) == 0 || result.Candidates[0].Content == nil || len(result.Candidates[0].Content.Parts) == 0 {
 		return nil, fmt.Errorf("received empty or invalid content response from AI model")
 	}
 
-	jsonString := resp.Candidates[0].Content.Parts[0].Text
+	jsonString := result.Candidates[0].Content.Parts[0].Text
 
 	var analysis dto.ResumeAnalysis
 	err = json.Unmarshal([]byte(jsonString), &analysis)

@@ -56,6 +56,6 @@ func AnalyzeResumeWithJD(req *dto.ResumeRequest) (*dto.ResumeAnalysis, error) {
 		}
 		`, req.JobDescription, resumeText)
 
-	return GetPromptResponseThroughVertexAPI(prompt)
+	return GetPromptResponseThroughGoogleAiStudioAPI(prompt)
 
 }
