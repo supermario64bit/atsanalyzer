@@ -1,16 +1,37 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/supermario64bit/atsanalyzer/dto"
+	"github.com/supermario64bit/atsanalyzer/types"
 	"github.com/supermario64bit/atsanalyzer/utils"
 )
 
-func AnalyzeResumeWithJD(req *dto.ResumeRequest) (*dto.ResumeAnalysis, error) {
+type resumeAnalysisService struct {
+	genAiSvc GenAIService
+}
+
+type ResumeAnalysis interface {
+	Analyse(req *dto.ResumeRequest) (*dto.ResumeAnalysis, *types.ApplicationError)
+}
+
+func NewResumeAnalysisService() ResumeAnalysis {
+	return &resumeAnalysisService{
+		genAiSvc: NewGenAiService(),
+	}
+}
+
+func (svc *resumeAnalysisService) Analyse(req *dto.ResumeRequest) (*dto.ResumeAnalysis, *types.ApplicationError) {
 	resumeText, err := utils.ExtractTextFromPDF(req.ResumeFile)
 	if err != nil {
-		return nil, err
+		return nil, &types.ApplicationError{
+			HttpStatusCode: http.StatusInternalServerError,
+			Message:        "Unable to analyse resume",
+			Error:          err,
+		}
 	}
 
 	prompt := fmt.Sprintf(`
@@ -56,6 +77,31 @@ func AnalyzeResumeWithJD(req *dto.ResumeRequest) (*dto.ResumeAnalysis, error) {
 		}
 		`, req.JobDescription, resumeText)
 
-	return GetPromptResponseThroughGoogleAiStudioAPI(prompt)
+	result, appErr := svc.genAiSvc.GetPromptResponse(prompt)
+	if appErr != nil {
+		return nil, appErr
+	}
+	fmt.Errorf("received empty or invalid content response from AI model")
 
+	if len(result.Candidates) == 0 || result.Candidates[0].Content == nil || len(result.Candidates[0].Content.Parts) == 0 {
+		return nil, &types.ApplicationError{
+			HttpStatusCode: http.StatusInternalServerError,
+			Message:        "Unable to analyse resume",
+			Error:          fmt.Errorf("received empty or invalid content response from AI model"),
+		}
+	}
+
+	jsonString := result.Candidates[0].Content.Parts[0].Text
+
+	var analysis dto.ResumeAnalysis
+	err = json.Unmarshal([]byte(jsonString), &analysis)
+	if err != nil {
+		return nil, &types.ApplicationError{
+			HttpStatusCode: http.StatusInternalServerError,
+			Message:        "Unable to analyse resume",
+			Error:          fmt.Errorf("failed to unmarshal JSON response into struct: %w. Response text: %s", err, jsonString),
+		}
+	}
+
+	return &analysis, nil
 }

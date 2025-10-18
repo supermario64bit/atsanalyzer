@@ -9,17 +9,21 @@ import (
 	"github.com/supermario64bit/atsanalyzer/service"
 )
 
-type FileHandler interface {
+type ResumeAnalysisHandler interface {
 	Analyse(c *gin.Context)
 }
 
-type fileHandler struct{}
-
-func NewFileHandler() FileHandler {
-	return &fileHandler{}
+type resumeAnalysisHandler struct {
+	svc service.ResumeAnalysis
 }
 
-func (h *fileHandler) Analyse(c *gin.Context) {
+func NewResumeAnalysisHandler() ResumeAnalysisHandler {
+	return &resumeAnalysisHandler{
+		svc: service.NewResumeAnalysisService(),
+	}
+}
+
+func (h *resumeAnalysisHandler) Analyse(c *gin.Context) {
 	var dto dto.ResumeRequest
 
 	if err := c.ShouldBind(&dto); err != nil {
@@ -34,13 +38,12 @@ func (h *fileHandler) Analyse(c *gin.Context) {
 		return
 	}
 
-	rawText, err := service.AnalyzeResumeWithJD(&dto)
-	if err != nil {
-		log.Println("Unable to parse resume. Error: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "failed", "message": "Unable to parse resume", "result": gin.H{"error": err.Error()}})
+	response, appErr := h.svc.Analyse(&dto)
+	if appErr != nil {
+		appErr.GinHttpResponse(c)
 		return
 	}
 
 	log.Println("ATS Score available")
-	c.JSON(http.StatusAccepted, gin.H{"status": "success", "message": "Analysis completed!!", "result": gin.H{"pdf_raw": rawText}})
+	c.JSON(http.StatusAccepted, gin.H{"status": "success", "message": "Analysis completed!!", "result": gin.H{"analysis_report": response}})
 }

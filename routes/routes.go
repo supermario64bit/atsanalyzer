@@ -7,7 +7,6 @@ import (
 
 func MountHTTPRoutes(r *gin.Engine) {
 
-	fileHanlder := handler.NewFileHandler()
-	r.POST("/analyse", fileHanlder.Analyse)
+	resumeAnalysisHandler := handler.NewResumeAnalysisHandler()
+	r.POST("/analyse", resumeAnalysisHandler.Analyse)
 }
-	

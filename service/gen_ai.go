@@ -5,11 +5,69 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
 
 	"github.com/supermario64bit/atsanalyzer/dto"
+	"github.com/supermario64bit/atsanalyzer/types"
 	"github.com/supermario64bit/atsanalyzer/utils"
 	"google.golang.org/genai"
 )
+
+type genAIService struct {
+	Client *genai.Client
+	Ctx    context.Context
+}
+
+type GenAIService interface {
+	GetPromptResponse(prompt string) (response *genai.GenerateContentResponse, appErr *types.ApplicationError)
+}
+
+func NewGenAiService() GenAIService {
+	if os.Getenv("GEMINI_API_KEY") == "" {
+		log.Println("No gemini api key found in the env file")
+	}
+	client, err := genai.NewClient(context.Background(), nil)
+	if err != nil {
+		log.Println("Unable to create gen ai client! Error: " + err.Error())
+	}
+	return &genAIService{
+		Client: client,
+		Ctx:    context.Background(),
+	}
+}
+
+func (svc *genAIService) GetPromptResponse(prompt string) (response *genai.GenerateContentResponse, appErr *types.ApplicationError) {
+	parts := []*genai.Part{
+		{Text: prompt},
+	}
+
+	temp := float32(0.0)
+	topP := float32(0.9)
+	config := &genai.GenerateContentConfig{
+		ResponseMIMEType: "application/json",
+		ResponseSchema:   utils.GenerateAnalysisSchema(),
+		Temperature:      &temp,
+		TopP:             &topP,
+	}
+
+	response, err := svc.Client.Models.GenerateContent(
+		svc.Ctx,
+		"gemini-2.5-flash",
+		[]*genai.Content{{Role: "user", Parts: parts}},
+		config,
+	)
+
+	if err != nil {
+		appErr.HttpStatusCode = http.StatusInternalServerError
+		appErr.Message = "Unable to get prompt response"
+		appErr.Error = err
+		return nil, appErr
+	}
+
+	return response, nil
+
+}
 
 func GetPromptResponseThroughGoogleAiStudioAPI(prompt string) (*dto.ResumeAnalysis, error) {
 	ctx := context.Background()
