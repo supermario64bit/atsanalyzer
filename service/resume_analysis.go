@@ -71,7 +71,6 @@ func (svc *resumeAnalysisService) Analyse(req *dto.ResumeAnalysisJob) (*dto.Resu
 	if appErr != nil {
 		return nil, appErr
 	}
-	fmt.Errorf("received empty or invalid content response from AI model")
 
 	if len(result.Candidates) == 0 || result.Candidates[0].Content == nil || len(result.Candidates[0].Content.Parts) == 0 {
 		return nil, &types.ApplicationError{
