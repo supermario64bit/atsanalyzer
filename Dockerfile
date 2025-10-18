@@ -13,7 +13,6 @@ RUN go mod download
 
 # Copy the rest of the source code
 COPY . .
-COPY ./assets/secrets/arctic-joy-475316-m1-07394b2f91c6.json ./assets/secrets/
 
 # Build the binary
 RUN go build -o app ./cmd/server
